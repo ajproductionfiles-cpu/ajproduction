@@ -21,7 +21,7 @@ export default async function AdminJournalPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {posts.map((post) => (
+        {posts.map((post: any) => (
           <div key={post.id} className="overflow-hidden rounded-[28px] border border-[#2c2c2e] bg-[#1c1c1e]">
             <div className="relative aspect-[16/10] bg-[#151517]">
               {post.coverImage ? (
