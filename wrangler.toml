@@ -14,4 +14,4 @@ service = "ajproduction"
 [[d1_databases]]
 binding = "DB"
 database_name = "luxury-studio-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "a68d8f40-e3d2-45aa-92cb-049d74bdf73e"
