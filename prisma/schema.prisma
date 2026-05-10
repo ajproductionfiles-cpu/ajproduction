@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteContent {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  category        String
+  client          String
+  year            String
+  servicesJson    String
+  description     String
+  fullDescription String
+  heroImage       String
+  galleryJson     String
+  tagsJson        String
+  featured        Boolean  @default(false)
+  published       Boolean  @default(false)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model JournalPost {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  category   String
+  authorName String   @default("Studio Editorial")
+  excerpt    String
+  content    String
+  coverImage String
+  tagsJson   String   @default("[]")
+  seoTitle   String   @default("")
+  seoDescription String @default("")
+  seoKeywords String  @default("")
+  canonicalUrl String @default("")
+  ogImage    String   @default("")
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Inquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  service   String
+  budget    String?
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
