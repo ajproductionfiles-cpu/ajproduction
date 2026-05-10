@@ -20,6 +20,14 @@ const REPLACEMENT_ASSET_URL =
 const REPLACEMENT_GALLERY_ASSET_URL =
   "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop";
 
+function isMissingTableError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = (error as { code?: string }).code;
+  if (code === "P2021") return true;
+  const message = String((error as { message?: string }).message || "");
+  return message.includes("TableDoesNotExist") || message.includes("does not exist");
+}
+
 function parseJsonArray(value: string) {
   try {
     const parsed = JSON.parse(value);
@@ -269,114 +277,127 @@ function mapInquiry(record: Inquiry): PublicInquiry {
 }
 
 export async function ensureSiteSeeded() {
-  await prisma.siteContent.upsert({
-    where: { key: SITE_SETTINGS_KEY },
-    create: { key: SITE_SETTINGS_KEY, value: JSON.stringify(defaultSiteSettings) },
-    update: {},
-  });
+  try {
+    await prisma.siteContent.upsert({
+      where: { key: SITE_SETTINGS_KEY },
+      create: { key: SITE_SETTINGS_KEY, value: JSON.stringify(defaultSiteSettings) },
+      update: {},
+    });
 
-  if ((await prisma.adminUser.count()) === 0) {
-    try {
-      await prisma.adminUser.create({
+    if ((await prisma.adminUser.count()) === 0) {
+      try {
+        await prisma.adminUser.create({
+          data: {
+            name: "Studio Admin",
+            email: process.env.ADMIN_EMAIL || "admin@studio.local",
+            passwordHash: hashPassword(process.env.ADMIN_PASSWORD || "ChangeMe123!"),
+          },
+        });
+      } catch {
+        // Another concurrent request seeded the admin first.
+      }
+    }
+
+    await Promise.all(
+      defaultProjects.map((project, index) =>
+        prisma.project.upsert({
+          where: { slug: project.slug },
+          create: {
+            title: project.title,
+            slug: project.slug,
+            category: project.category,
+            client: project.client,
+            year: project.year,
+            servicesJson: serializeJsonArray(project.services),
+            description: project.description,
+            fullDescription: project.fullDescription,
+            heroImage: project.heroImage,
+            galleryJson: serializeProjectGallery(project.gallery),
+            tagsJson: serializeJsonArray(project.tags),
+            featured: project.featured,
+            published: project.published,
+            sortOrder: project.sortOrder || index + 1,
+          },
+          update: {},
+        }),
+      ),
+    );
+
+    await Promise.all(
+      defaultJournalPosts.map((post) =>
+        prisma.journalPost.upsert({
+          where: { slug: post.slug },
+          create: {
+            title: post.title,
+            slug: post.slug,
+            category: post.category,
+            authorName: post.authorName,
+            excerpt: post.excerpt,
+            content: post.content,
+            coverImage: post.coverImage,
+            tagsJson: serializeJsonArray(post.tags),
+            seoTitle: post.seoTitle,
+            seoDescription: post.seoDescription,
+            seoKeywords: post.seoKeywords,
+            canonicalUrl: post.canonicalUrl,
+            ogImage: post.ogImage,
+            published: post.published,
+          },
+          update: {},
+        }),
+      ),
+    );
+
+    const settingsRecord = await prisma.siteContent.findUnique({
+      where: { key: SITE_SETTINGS_KEY },
+    });
+    if (settingsRecord?.value.includes(BROKEN_ASSET_URL)) {
+      await prisma.siteContent.update({
+        where: { key: SITE_SETTINGS_KEY },
         data: {
-          name: "Studio Admin",
-          email: process.env.ADMIN_EMAIL || "admin@studio.local",
-          passwordHash: hashPassword(process.env.ADMIN_PASSWORD || "ChangeMe123!"),
+          value: settingsRecord.value.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_ASSET_URL),
         },
       });
-    } catch {
-      // Another concurrent request seeded the admin first.
     }
-  }
 
-  await Promise.all(
-    defaultProjects.map((project, index) =>
-      prisma.project.upsert({
-        where: { slug: project.slug },
-        create: {
-          title: project.title,
-          slug: project.slug,
-          category: project.category,
-          client: project.client,
-          year: project.year,
-          servicesJson: serializeJsonArray(project.services),
-          description: project.description,
-          fullDescription: project.fullDescription,
-          heroImage: project.heroImage,
-          galleryJson: serializeProjectGallery(project.gallery),
-          tagsJson: serializeJsonArray(project.tags),
-          featured: project.featured,
-          published: project.published,
-          sortOrder: project.sortOrder || index + 1,
-        },
-        update: {},
-      }),
-    ),
-  );
-
-  await Promise.all(
-    defaultJournalPosts.map((post) =>
-      prisma.journalPost.upsert({
-        where: { slug: post.slug },
-        create: {
-          title: post.title,
-          slug: post.slug,
-          category: post.category,
-          authorName: post.authorName,
-          excerpt: post.excerpt,
-          content: post.content,
-          coverImage: post.coverImage,
-          tagsJson: serializeJsonArray(post.tags),
-          seoTitle: post.seoTitle,
-          seoDescription: post.seoDescription,
-          seoKeywords: post.seoKeywords,
-          canonicalUrl: post.canonicalUrl,
-          ogImage: post.ogImage,
-          published: post.published,
-        },
-        update: {},
-      }),
-    ),
-  );
-
-  const settingsRecord = await prisma.siteContent.findUnique({
-    where: { key: SITE_SETTINGS_KEY },
-  });
-  if (settingsRecord?.value.includes(BROKEN_ASSET_URL)) {
-    await prisma.siteContent.update({
-      where: { key: SITE_SETTINGS_KEY },
-      data: {
-        value: settingsRecord.value.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_ASSET_URL),
+    const projects = await prisma.project.findMany({
+      where: {
+        OR: [{ heroImage: BROKEN_ASSET_URL }, { galleryJson: { contains: BROKEN_ASSET_URL } }],
       },
     });
+
+    await Promise.all(
+      projects.map((project) =>
+        prisma.project.update({
+          where: { id: project.id },
+          data: {
+            heroImage:
+              project.heroImage === BROKEN_ASSET_URL ? REPLACEMENT_ASSET_URL : project.heroImage,
+            galleryJson: project.galleryJson.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_GALLERY_ASSET_URL),
+          },
+        }),
+      ),
+    );
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      throw error;
+    }
   }
-
-  const projects = await prisma.project.findMany({
-    where: {
-      OR: [{ heroImage: BROKEN_ASSET_URL }, { galleryJson: { contains: BROKEN_ASSET_URL } }],
-    },
-  });
-
-  await Promise.all(
-    projects.map((project) =>
-      prisma.project.update({
-        where: { id: project.id },
-        data: {
-          heroImage:
-            project.heroImage === BROKEN_ASSET_URL ? REPLACEMENT_ASSET_URL : project.heroImage,
-          galleryJson: project.galleryJson.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_GALLERY_ASSET_URL),
-        },
-      }),
-    ),
-  );
 }
 
 export async function getSiteSettings() {
   await ensureSiteSeeded();
-
-  const record = await prisma.siteContent.findUnique({
-    where: { key: SITE_SETTINGS_KEY },
-  });
+  let record: { value: string } | null = null;
+  try {
+    record = await prisma.siteContent.findUnique({
+      where: { key: SITE_SETTINGS_KEY },
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      throw error;
+    }
+    return defaultSiteSettings;
+  }
 
   if (!record) return defaultSiteSettings;
 
@@ -407,9 +428,17 @@ export async function updateSiteSettings(
 
 export async function getAllProjects() {
   await ensureSiteSeeded();
-  const records = await prisma.project.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  let records: Project[] = [];
+  try {
+    records = await prisma.project.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      throw error;
+    }
+    return defaultProjects;
+  }
   return records.map(mapProject);
 }
 
@@ -478,9 +507,17 @@ export async function deleteProjectById(id: string) {
 
 export async function getAllJournalPosts() {
   await ensureSiteSeeded();
-  const records = await prisma.journalPost.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let records: JournalPost[] = [];
+  try {
+    records = await prisma.journalPost.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      throw error;
+    }
+    return defaultJournalPosts;
+  }
   return records.map(mapJournalPost);
 }
 
@@ -549,9 +586,17 @@ export async function deleteJournalPostById(id: string) {
 
 export async function getAllInquiries() {
   await ensureSiteSeeded();
-  const records = await prisma.inquiry.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let records: Inquiry[] = [];
+  try {
+    records = await prisma.inquiry.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      throw error;
+    }
+    return [];
+  }
   return records.map(mapInquiry);
 }
 
