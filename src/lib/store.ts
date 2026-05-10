@@ -133,23 +133,25 @@ function isClient() {
 }
 
 // Projects
-export function getProjects(): Project[] {
+export function getPublishedProjects(): Project[] {
   if (!isClient()) return seedProjects;
   const raw = localStorage.getItem(PROJECTS_KEY);
   if (!raw) {
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(seedProjects));
     return seedProjects;
   }
-  return JSON.parse(raw);
+  return (JSON.parse(raw) as Project[]).filter((project) => project.published);
 }
 
 export function getProjectBySlug(slug: string): Project | undefined {
-  return getProjects().find(p => p.slug === slug);
+  return getPublishedProjects().find(p => p.slug === slug);
 }
 
 export function saveProject(project: Project): void {
   if (!isClient()) return;
-  const projects = getProjects();
+  const projects = isClient() && localStorage.getItem(PROJECTS_KEY)
+    ? (JSON.parse(localStorage.getItem(PROJECTS_KEY) as string) as Project[])
+    : seedProjects;
   const idx = projects.findIndex(p => p.id === project.id);
   if (idx >= 0) {
     projects[idx] = project;
@@ -161,9 +163,13 @@ export function saveProject(project: Project): void {
 
 export function deleteProject(id: string): void {
   if (!isClient()) return;
-  const projects = getProjects().filter(p => p.id !== id);
+  const projects = isClient() && localStorage.getItem(PROJECTS_KEY)
+    ? (JSON.parse(localStorage.getItem(PROJECTS_KEY) as string) as Project[]).filter((p) => p.id !== id)
+    : seedProjects.filter((p) => p.id !== id);
   localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
 }
+
+export const getProjects = getPublishedProjects;
 
 // Journal
 export function getJournalPosts(): JournalPost[] {

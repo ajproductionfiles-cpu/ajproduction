@@ -1,0 +1,18 @@
+name = "luxury-studio"
+main = ".open-next/worker.js"
+compatibility_date = "2026-05-10"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "luxury-studio"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "luxury-studio-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+

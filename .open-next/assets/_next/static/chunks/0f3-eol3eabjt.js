@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,61339,t=>{"use strict";var e=t.i(43476),i=t.i(74080);t.s(["SubmitButton",0,function({label:t,pendingLabel:s="Saving...",className:u=""}){let{pending:o}=(0,i.useFormStatus)();return(0,e.jsx)("button",{type:"submit",disabled:o,className:u,children:o?s:t})}])}]);
