@@ -389,39 +389,6 @@ export async function ensureSiteSeeded() {
         },
       }),
     ),
-  );
-}
-
-  const settingsRecord = await prisma.siteContent.findUnique({
-    where: { key: SITE_SETTINGS_KEY },
-  });
-  if (settingsRecord?.value.includes(BROKEN_ASSET_URL)) {
-    await prisma.siteContent.update({
-      where: { key: SITE_SETTINGS_KEY },
-      data: {
-        value: settingsRecord.value.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_ASSET_URL),
-      },
-    });
-  }
-
-  const projects = await prisma.project.findMany({
-    where: {
-      OR: [{ heroImage: BROKEN_ASSET_URL }, { galleryJson: { contains: BROKEN_ASSET_URL } }],
-    },
-  });
-
-  await Promise.all(
-    projects.map((project) =>
-      prisma.project.update({
-        where: { id: project.id },
-        data: {
-          heroImage:
-            project.heroImage === BROKEN_ASSET_URL ? REPLACEMENT_ASSET_URL : project.heroImage,
-          galleryJson: project.galleryJson.replaceAll(BROKEN_ASSET_URL, REPLACEMENT_GALLERY_ASSET_URL),
-        },
-      }),
-    ),
-  );
 }
 
 export async function getSiteSettings() {
