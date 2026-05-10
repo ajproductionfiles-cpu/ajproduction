@@ -59,7 +59,7 @@ export default async function AdminLayout({
   const admin = await requireAdmin();
   const initials = admin.name
     .split(" ")
-    .map((chunk) => chunk[0])
+    .map((chunk: any) => chunk[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
