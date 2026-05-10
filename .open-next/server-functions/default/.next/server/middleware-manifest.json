@@ -3,28 +3,23 @@
   "middleware": {
     "/": {
       "files": [
-        "server/edge/chunks/node_modules_0ch0kgf._.js",
-        "server/edge/chunks/[root-of-the-server]__0bqxa8m._.js",
-        "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_0syktl3.js"
+        "server/edge/chunks/node_modules_next_dist_esm_build_templates_edge-wrapper_0a9gg_0.js",
+        "server/edge/chunks/[root-of-the-server]__0_lzsr-._.js",
+        "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_09_s2fq.js"
       ],
       "name": "middleware",
       "page": "/",
-      "entrypoint": "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_0syktl3.js",
+      "entrypoint": "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_09_s2fq.js",
       "matchers": [
         {
           "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/admin(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json|\\.rsc|\\.segments\\/.+\\.segment\\.rsc)?[\\/#\\?]?$",
           "originalSource": "/admin/:path*"
         }
       ],
-      "wasm": [
-        {
-          "name": "wasm_aab3702b0d04903290f192f33b07094a",
-          "filePath": "server/edge/chunks/node_modules__prisma_client_query_compiler_fast_bg_0656eb_.wasm"
-        }
-      ],
+      "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "RSMaIRE5v6l6Nn6F8sevU",
+        "__NEXT_BUILD_ID": "MpJM42euNu9CE4VQY0WTU",
         "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "642ZcAmOiGihq8QMYG789BNiJydVgzNndxUxZNkE9Cc=",
         "__NEXT_PREVIEW_MODE_ID": "89a1665046b1a39986c953a07e0529b5",
         "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "a1105f298c0e966a086e6c0c1b5c8cd8a57bab2d460d5a48a2eef0cc2e80d1b2",

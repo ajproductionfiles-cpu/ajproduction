@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { decodeSignedPayload, encodeSignedPayload } from "@/lib/security";
 import { ensureSiteSeeded } from "@/lib/site/data";
-
-export const ADMIN_SESSION_COOKIE = "studio_admin_session";
+import { ADMIN_SESSION_COOKIE } from "@/lib/constants";
 
 type SessionPayload = {
   sub: string;
