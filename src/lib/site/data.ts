@@ -364,7 +364,7 @@ export async function ensureSiteSeeded() {
     });
   }
 
-  const projects = await prisma.project.findMany({
+    const projects = await prisma.project.findMany({
     where: {
       OR: [
         { heroImage: BROKEN_ASSET_URL },
@@ -387,8 +387,9 @@ export async function ensureSiteSeeded() {
             REPLACEMENT_GALLERY_ASSET_URL
           ),
         },
-      }),
-    ),
+      })
+    )
+  );
 }
 
 export async function getSiteSettings() {
@@ -490,6 +491,113 @@ export async function upsertProject(project: Omit<PublicProject, "createdAt"> & 
   });
 
   return mapProject(record);
+}
+
+export async function deleteProjectById(id: string) {
+  await prisma.project.delete({ where: { id } });
+}
+
+export async function getAllJournalPosts() {
+  await ensureSiteSeeded();
+  const records = await prisma.journalPost.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return records.map(mapJournalPost);
+}
+
+export async function getPublishedJournalPosts() {
+  const posts = await getAllJournalPosts();
+  return posts.filter((post) => post.published);
+}
+
+export async function getJournalPostById(id: string) {
+  await ensureSiteSeeded();
+  const record = await prisma.journalPost.findUnique({ where: { id } });
+  return record ? mapJournalPost(record) : null;
+}
+
+export async function getJournalPostBySlug(slug: string) {
+  await ensureSiteSeeded();
+  const record = await prisma.journalPost.findUnique({ where: { slug } });
+  return record ? mapJournalPost(record) : null;
+}
+
+export async function upsertJournalPost(post: Omit<PublicJournalPost, "createdAt"> & { createdAt?: string }) {
+  const record = await prisma.journalPost.upsert({
+    where: { id: post.id },
+    create: {
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      category: post.category,
+      authorName: post.authorName,
+      excerpt: post.excerpt,
+      content: post.content,
+      coverImage: post.coverImage,
+      tagsJson: serializeJsonArray(post.tags),
+      seoTitle: post.seoTitle,
+      seoDescription: post.seoDescription,
+      seoKeywords: post.seoKeywords,
+      canonicalUrl: post.canonicalUrl,
+      ogImage: post.ogImage,
+      published: post.published,
+      createdAt: post.createdAt ? new Date(post.createdAt) : undefined,
+    },
+    update: {
+      title: post.title,
+      slug: post.slug,
+      category: post.category,
+      authorName: post.authorName,
+      excerpt: post.excerpt,
+      content: post.content,
+      coverImage: post.coverImage,
+      tagsJson: serializeJsonArray(post.tags),
+      seoTitle: post.seoTitle,
+      seoDescription: post.seoDescription,
+      seoKeywords: post.seoKeywords,
+      canonicalUrl: post.canonicalUrl,
+      ogImage: post.ogImage,
+      published: post.published,
+    },
+  });
+
+  return mapJournalPost(record);
+}
+
+export async function deleteJournalPostById(id: string) {
+  await prisma.journalPost.delete({ where: { id } });
+}
+
+export async function getAllInquiries() {
+  await ensureSiteSeeded();
+  const records = await prisma.inquiry.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return records.map(mapInquiry);
+}
+
+export async function createInquiry(data: Omit<PublicInquiry, "id" | "status" | "createdAt">) {
+  const record = await prisma.inquiry.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      service: data.service,
+      budget: data.budget || null,
+      message: data.message,
+    },
+  });
+
+  return mapInquiry(record);
+}
+
+export async function updateInquiryStatus(id: string, status: PublicInquiry["status"]) {
+  const record = await prisma.inquiry.update({
+    where: { id },
+    data: { status },
+  });
+
+  return mapInquiry(record);
 }
 
 export async function deleteProjectById(id: string) {
