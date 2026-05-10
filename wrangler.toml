@@ -1,4 +1,4 @@
-name = "luxury-studio"
+name = "ajproduction"
 main = ".open-next/worker.js"
 compatibility_date = "2026-05-10"
 compatibility_flags = ["nodejs_compat"]
@@ -9,10 +9,9 @@ binding = "ASSETS"
 
 [[services]]
 binding = "WORKER_SELF_REFERENCE"
-service = "luxury-studio"
+service = "ajproduction"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "luxury-studio-db"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-
