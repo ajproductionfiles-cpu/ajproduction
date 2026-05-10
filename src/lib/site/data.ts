@@ -269,9 +269,16 @@ function mapInquiry(record: Inquiry): PublicInquiry {
 }
 
 export async function ensureSiteSeeded() {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
   await prisma.siteContent.upsert({
     where: { key: SITE_SETTINGS_KEY },
-    create: { key: SITE_SETTINGS_KEY, value: JSON.stringify(defaultSiteSettings) },
+    create: {
+      key: SITE_SETTINGS_KEY,
+      value: JSON.stringify(defaultSiteSettings),
+    },
     update: {},
   });
 
@@ -281,13 +288,16 @@ export async function ensureSiteSeeded() {
         data: {
           name: "Studio Admin",
           email: process.env.ADMIN_EMAIL || "admin@studio.local",
-          passwordHash: hashPassword(process.env.ADMIN_PASSWORD || "ChangeMe123!"),
+          passwordHash: hashPassword(
+            process.env.ADMIN_PASSWORD || "ChangeMe123!"
+          ),
         },
       });
     } catch {
       // Another concurrent request seeded the admin first.
     }
   }
+}
 
   await Promise.all(
     defaultProjects.map((project, index) =>
