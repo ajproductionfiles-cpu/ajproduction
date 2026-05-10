@@ -493,10 +493,6 @@ export async function upsertProject(project: Omit<PublicProject, "createdAt"> & 
   return mapProject(record);
 }
 
-export async function deleteProjectById(id: string) {
-  await prisma.project.delete({ where: { id } });
-}
-
 export async function getAllJournalPosts() {
   await ensureSiteSeeded();
   const records = await prisma.journalPost.findMany({
