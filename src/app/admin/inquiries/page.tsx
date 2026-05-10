@@ -14,7 +14,7 @@ export default async function AdminInquiriesPage() {
       </div>
 
       <div className="space-y-5">
-        {inquiries.map((inquiry) => (
+        {inquiries.map((inquiry: any) => (
           <section key={inquiry.id} className="rounded-[28px] border border-[#2c2c2e] bg-[#1c1c1e] p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-3">
