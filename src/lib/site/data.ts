@@ -493,30 +493,6 @@ export async function upsertProject(project: Omit<PublicProject, "createdAt"> & 
   return mapProject(record);
 }
 
-export async function getAllJournalPosts() {
-  await ensureSiteSeeded();
-  const records = await prisma.journalPost.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-  return records.map(mapJournalPost);
-}
-
-export async function getPublishedJournalPosts() {
-  const posts = await getAllJournalPosts();
-  return posts.filter((post) => post.published);
-}
-
-export async function getJournalPostById(id: string) {
-  await ensureSiteSeeded();
-  const record = await prisma.journalPost.findUnique({ where: { id } });
-  return record ? mapJournalPost(record) : null;
-}
-
-export async function getJournalPostBySlug(slug: string) {
-  await ensureSiteSeeded();
-  const record = await prisma.journalPost.findUnique({ where: { slug } });
-  return record ? mapJournalPost(record) : null;
-}
 
 export async function upsertJournalPost(post: Omit<PublicJournalPost, "createdAt"> & { createdAt?: string }) {
   const record = await prisma.journalPost.upsert({
@@ -598,31 +574,6 @@ export async function updateInquiryStatus(id: string, status: PublicInquiry["sta
 
 export async function deleteProjectById(id: string) {
   await prisma.project.delete({ where: { id } });
-}
-
-export async function getAllJournalPosts() {
-  await ensureSiteSeeded();
-  const records = await prisma.journalPost.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-  return records.map(mapJournalPost);
-}
-
-export async function getPublishedJournalPosts() {
-  const posts = await getAllJournalPosts();
-  return posts.filter((post) => post.published);
-}
-
-export async function getJournalPostById(id: string) {
-  await ensureSiteSeeded();
-  const record = await prisma.journalPost.findUnique({ where: { id } });
-  return record ? mapJournalPost(record) : null;
-}
-
-export async function getJournalPostBySlug(slug: string) {
-  await ensureSiteSeeded();
-  const record = await prisma.journalPost.findUnique({ where: { slug } });
-  return record ? mapJournalPost(record) : null;
 }
 
 export async function upsertJournalPost(post: Omit<PublicJournalPost, "createdAt"> & { createdAt?: string }) {
